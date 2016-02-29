@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Specialized;
+using System.Configuration;
 
 using MassTransit;
 
@@ -10,6 +12,8 @@ namespace Demo.ADTProcessing.Worker
 {
     public class Worker
     {
+        private static readonly NameValueCollection AppSettings = ConfigurationManager.AppSettings;
+
         public void Run()
         {
             Console.WriteLine("Demo.ADTProcessing.Worker::Hit ENTER to start.");
@@ -47,7 +51,8 @@ namespace Demo.ADTProcessing.Worker
                 {
                     ep.Consumer<AccountSequenceCommandConsumer>(container, cfg =>
                     {
-                        cfg.UseConcurrencyLimit(16);
+                        var numberOfWorkers = AppSettings["numberOfWorkers"].As<int>();
+                        cfg.UseConcurrencyLimit(numberOfWorkers);
                     });
                 });
             });

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Specialized;
+using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -11,6 +13,8 @@ namespace Demo.ADTProcessing.DataIngress
 {
     public class DataIngress
     {
+        private readonly NameValueCollection _appSettings = ConfigurationManager.AppSettings;
+
         public void Run()
         {
             Console.WriteLine("Demo.ADTProcessing.DataIngress::Hit ENTER to start.");
@@ -34,22 +38,21 @@ namespace Demo.ADTProcessing.DataIngress
 
             var stopwatch = new Stopwatch();
 
-            var currentClients = 50;
-            var currentMessageRate = 360;
-            var expectedClients = 300;
+            var testFacilities = _appSettings["testFacilities"].As<int>();
+            var testAccounts = _appSettings["testAccounts"].As<int>();
 
             while (true)
             {
                 stopwatch.Reset();
                 stopwatch.Start();
 
-                var expectedRate = (currentMessageRate/currentClients)*expectedClients;
+                var expectedRatePerMinute = _appSettings["expectedRatePerMinute"].As<int>();
                 int remainder;
-                var numberOfMessages = Math.DivRem(expectedRate, 60, out remainder);
+                var expectedRatePerSecond = Math.DivRem(expectedRatePerMinute, 60, out remainder);
 
-                foreach (var count in Enumerable.Range(0, numberOfMessages))
+                foreach (var count in Enumerable.Range(0, expectedRatePerSecond))
                 {
-                    var command = new {FacilityId = GetRandomNumber(3), AccountNumber = GetRandomNumber(10)};
+                    var command = new {FacilityId = GetRandomNumber(testFacilities), AccountNumber = GetRandomNumber(testAccounts)};
 
                     routerEndpoint
                         .Send<IADTCommand>(command);

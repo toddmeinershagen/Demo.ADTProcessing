@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Specialized;
+using System.Configuration;
 
 using MassTransit;
 
@@ -10,6 +12,8 @@ namespace Demo.ADTProcessing.Router
 {
     public class Router
     {
+        private static readonly NameValueCollection AppSettings = ConfigurationManager.AppSettings;
+
         public void Run()
         {
             Console.WriteLine("Demo.ADTProcessing.Router::Hit ENTER to start.");
@@ -58,13 +62,16 @@ namespace Demo.ADTProcessing.Router
                     //ep.Exclusive = true;
                     ep.Consumer<ADTCommandConsumer>(container, cfg =>
                     {
-                        cfg.UseConcurrencyLimit(1);
+                        var numberOfAdtCommandWorkers = AppSettings["numberOfADTCommandWorkers"].As<int>();
+                        cfg.UseConcurrencyLimit(numberOfAdtCommandWorkers);
                     });
 
                     //ep.Exclusive = true;
                     ep.Consumer<AccountSequenceCompletedEventConsumer>(container, cfg =>
                     {
-                        cfg.UseConcurrencyLimit(1);
+                        var numberOfAccountSequenceCompletedWorkers =
+                            AppSettings["numberOfAccountSequenceCompletedWorkers"].As<int>();
+                        cfg.UseConcurrencyLimit(numberOfAccountSequenceCompletedWorkers);
                     });
                 });
 

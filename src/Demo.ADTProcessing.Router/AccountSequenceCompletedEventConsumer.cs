@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Demo.ADTProcessing.Core;
+using Demo.ADTProcessing.Router.RabbitMQ;
 
 using MassTransit;
 
@@ -29,9 +30,13 @@ namespace Demo.ADTProcessing.Router
 
                 if (queue.MessageCount == 0)
                 {
-                    string queueAddress;
                     if (Program.Queues.ContainsKey(context.Message.QueueAddress))
                     {
+                        lock (Lock.SyncRoot)
+                        {
+                            DeleteQueue(context.Message.QueueAddress);
+                        }
+                        string queueAddress;
                         while (Program.Queues.TryRemove(context.Message.QueueAddress, out queueAddress) == false)
                         {
                         }
@@ -43,9 +48,22 @@ namespace Demo.ADTProcessing.Router
                     .Publish<IAccountSequenceCommand>(new { QueueAddress = address })
                     .Wait();
                 }
+
+                channel.Close(200, "Ok");
             }
 
             return Console.Out.WriteLineAsync($"{context.Message.QueueAddress}");
+        }
+
+        private void DeleteQueue(string addressUrl)
+        {
+            using (var channel = _connection.CreateModel())
+            {
+                var name = RabbitMqEndpointAddress.Parse(addressUrl).Name;
+                channel.QueueDelete(name);
+                channel.ExchangeDelete(name);
+                channel.Close(200, "ok");
+            }
         }
     }
 }

@@ -48,14 +48,14 @@ namespace Demo.ADTProcessing.Worker
 
                     var counter = 0;
                     var consumer = new EventingBasicConsumer(channel);
-                    consumer.Received += (object sender, BasicDeliverEventArgs args) =>
+                    
+                    consumer.Received += (sender, args) =>
                     {
                         timer.Stop();
 
                         counter++;
-                        var body = args.Body;
                         DoWork(context, counter);
-                        channel.BasicAck(deliveryTag: args.DeliveryTag, multiple: false);
+                        channel.BasicAck(args.DeliveryTag, false);
 
                         //if (_counter == 7)
                         //{
@@ -65,8 +65,8 @@ namespace Demo.ADTProcessing.Worker
                         timer.Start();
                     };
 
-                    var consumerTag = channel.BasicConsume(queueName, false, consumer);
-
+                    channel.QueueDeclarePassive(queueName);
+                    channel.BasicConsume(queueName, false, consumer);
                     WaitHandle.WaitAll(new[] {mre.WaitHandle}, Timeout.Infinite);
                 }
 
@@ -90,7 +90,7 @@ namespace Demo.ADTProcessing.Worker
         private void DoWork(ConsumeContext<IAccountSequenceCommand> context, int counter)
         {
             Console.WriteLine($"{counter:0#}::{context.Message.QueueAddress}");
-            Thread.Sleep(TimeSpan.FromSeconds(GetRandomNumber(4)));
+            //Thread.Sleep(TimeSpan.FromSeconds(GetRandomNumber(4)));
         }
 
         private int GetRandomNumber(int maxNumber)
