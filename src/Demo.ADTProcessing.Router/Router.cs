@@ -75,9 +75,10 @@ namespace Demo.ADTProcessing.Router
                     });
                 });
 
-                //NOTE:  removed the second endpoint to make sure that removals don't leave queues stranded.
+                //NOTE:  removed the second endpoint to make sure that removals don't leave queues stranded.  (was also causing skipped messages in the ADT command processor.)
                 //sbc.ReceiveEndpoint(host, "Demo.ADTProcessing.Router.AccountSequenceCompleted", ep =>
                 //{
+
                 //});
             });
         }
