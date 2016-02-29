@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Event.cs" />
     <Compile Include="IAccountSequenceCommand.cs" />
     <Compile Include="IAccountSequenceCompletedEvent.cs" />
     <Compile Include="IADTCommand.cs" />

@@ -1,5 +1,4 @@
 using System;
-using System.Data.SqlTypes;
 using System.Threading.Tasks;
 
 using Demo.ADTProcessing.Core;
@@ -27,8 +26,10 @@ namespace Demo.ADTProcessing.Router
             var key = GetKey(context.Message);
             var endpointAddressUrl = $"rabbitmq://localhost/adt/Demo.ADTProcessing.Router.{key}";
 
-            //NOTE:     Had to increase the lock because the worker started having issues trying to read from a queue that had been deleted.  May want to do this as a single thread
+            //NOTE:     Sad case - worker tries to read from a queue that was just deleted after sequence command was sent.
+            //          Had to increase the lock because the worker started having issues trying to read from a queue that had been deleted.  May want to do this as a single thread
             //          that processes both types of messages so that there is no need for synchronization.
+            //NOTE:     Would like to limit this lock, by only locking for creation of queue and send to temporary queue...the rest can remain outside of that.
             lock (Lock.SyncRoot)
             {
                 if (Program.Queues.ContainsKey(endpointAddressUrl) == false)
@@ -50,6 +51,7 @@ namespace Demo.ADTProcessing.Router
 
                 var endpointUri = new Uri(endpointAddressUrl);
 
+                context.Message.Timestamp = DateTime.Now;
                 return context
                     .GetSendEndpoint(endpointUri).Result
                     .Send(context.Message);

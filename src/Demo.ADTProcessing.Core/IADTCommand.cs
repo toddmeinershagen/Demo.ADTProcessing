@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography.X509Certificates;
+﻿using System;
 
 namespace Demo.ADTProcessing.Core
 {
@@ -6,5 +6,6 @@ namespace Demo.ADTProcessing.Core
     {
         int FacilityId { get; set; }
         int AccountNumber { get; set; }
+        DateTime Timestamp { get; set; }
     }
 }

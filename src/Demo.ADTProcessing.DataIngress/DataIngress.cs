@@ -52,7 +52,7 @@ namespace Demo.ADTProcessing.DataIngress
 
                 foreach (var count in Enumerable.Range(0, expectedRatePerSecond))
                 {
-                    var command = new {FacilityId = GetRandomNumber(testFacilities), AccountNumber = GetRandomNumber(testAccounts)};
+                    var command = new {FacilityId = GetRandomNumber(testFacilities), AccountNumber = GetRandomNumber(testAccounts), Timestamp = DateTime.Now};
 
                     routerEndpoint
                         .Send<IADTCommand>(command);
