@@ -25,7 +25,7 @@ namespace Demo.ADTProcessing.Worker
 {
     public class AccountSequenceCommandConsumer : IConsumer<IAccountSequenceCommand>
     {
-        private readonly NameValueCollection _appSettings = ConfigurationManager.AppSettings;
+        private static readonly NameValueCollection AppSettings = ConfigurationManager.AppSettings;
         private readonly IConnection _connection;
         private readonly JsonSerializerSettings _settings;
 
@@ -55,12 +55,12 @@ namespace Demo.ADTProcessing.Worker
                 //channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
                 var address = new Uri(context.Message.QueueAddress);
                 var queueName = address.Segments.Last();
-                var receiveTimeoutInMiliseconds = _appSettings["receiveTimeoutInMilliseconds"].As<int>();
+                var receiveTimeoutInMiliseconds = AppSettings["receiveTimeoutInMilliseconds"].As<int>();
                 var consumer = new QueueingBasicConsumer(channel);
                 channel.BasicConsume(queueName, false, consumer);
                 var counter = 0;
                 BasicDeliverEventArgs args;
-                var maxMessagesToProcess = _appSettings["maxMessagesToProcess"].As<int>();
+                var maxMessagesToProcess = AppSettings["maxMessagesToProcess"].As<int>();
 
                 while (consumer.Queue.Dequeue(receiveTimeoutInMiliseconds, out args) && counter < maxMessagesToProcess)
                 {
@@ -103,11 +103,12 @@ namespace Demo.ADTProcessing.Worker
 
         private static void SendMetricsEvent(ConsumeContext<IAccountSequenceCommand> context, int delay, int execution, bool successful)
         {
+            var workerQueueName = AppSettings["workerQueueName"];
             context
                 .Publish<IMetricsEvent>(
                     new
                     {
-                        EventType = "Demo.ADTProcessing.Worker",
+                        EventType = workerQueueName,
                         DelayInMilliseconds = delay,
                         ExecutionInMilliseconds = execution,
                         Successful = true
@@ -119,7 +120,7 @@ namespace Demo.ADTProcessing.Worker
         {
             Console.WriteLine($"{counter:0#}::{context.Message.QueueAddress}");
 
-            var maxDelayInProcessing = _appSettings["maxProcessingDelayInSeconds"].As<int>();
+            var maxDelayInProcessing = AppSettings["maxProcessingDelayInSeconds"].As<int>();
             Thread.Sleep(TimeSpan.FromSeconds(GetRandomNumber(maxDelayInProcessing)));
     }
 

@@ -16,7 +16,8 @@ namespace Demo.ADTProcessing.Worker
 
         public void Run()
         {
-            Console.WriteLine("Demo.ADTProcessing.Worker::Hit ENTER to start.");
+            var workerQueueName = AppSettings["workerQueueName"];
+            Console.WriteLine($"{workerQueueName}::Hit ENTER to start.");
             Console.ReadLine();
 
             var factory = GetConnectionFactory();
@@ -31,7 +32,7 @@ namespace Demo.ADTProcessing.Worker
             var bus = CreateBus(container);
 
             bus.Start();
-            Console.WriteLine("Worker(s) started.  Hit ENTER to end...");
+            Console.WriteLine($"{workerQueueName}(s) started.  Hit ENTER to end...");
             Console.ReadLine();
             bus.Stop();
         }
@@ -40,14 +41,16 @@ namespace Demo.ADTProcessing.Worker
         {
             return Bus.Factory.CreateUsingRabbitMq(sbc =>
             {
-                var host = sbc.Host(new Uri("rabbitmq://localhost/adt"), h =>
+                var busHostUri = AppSettings["busHostUri"];
+                var workerQueueName = AppSettings["workerQueueName"];
+                var host = sbc.Host(new Uri(busHostUri), h =>
                 {
                     h.Username("guest");
                     h.Password("");
                     h.Heartbeat(10);
                 });
 
-                sbc.ReceiveEndpoint(host, "Demo.ADTProcessing.Worker", ep =>
+                sbc.ReceiveEndpoint(host, workerQueueName, ep =>
                 {
                     ep.Consumer<AccountSequenceCommandConsumer>(container, cfg =>
                     {
@@ -60,9 +63,10 @@ namespace Demo.ADTProcessing.Worker
 
         private static ConnectionFactory GetConnectionFactory()
         {
+            var brokerHostUri = AppSettings["brokerHostUri"];
             return new ConnectionFactory
             {
-                Uri = "amqp://guest:guest@localhost:5672/adt",
+                Uri = brokerHostUri,
                 RequestedHeartbeat = 10,
                 AutomaticRecoveryEnabled = true,
                 NetworkRecoveryInterval = TimeSpan.FromSeconds(10)

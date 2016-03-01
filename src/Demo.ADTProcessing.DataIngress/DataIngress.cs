@@ -13,18 +13,19 @@ namespace Demo.ADTProcessing.DataIngress
 {
     public class DataIngress
     {
-        private readonly NameValueCollection _appSettings = ConfigurationManager.AppSettings;
+        private static readonly NameValueCollection AppSettings = ConfigurationManager.AppSettings;
 
         public void Run()
         {
-            Console.WriteLine("Demo.ADTProcessing.DataIngress::Hit ENTER to start.");
+            var dataIngressQueueName = AppSettings["dataIngressQueueName"];
+            Console.WriteLine($"{dataIngressQueueName}::Hit ENTER to start.");
             Console.ReadLine();
 
             var bus = CreateBus();
 
             bus.Start();
 
-            Console.WriteLine("Data Ingress started.  Hit ENTER to end...");
+            Console.WriteLine($"{dataIngressQueueName} started.  Hit ENTER to end...");
 
             PublishMessages(bus);
 
@@ -33,20 +34,22 @@ namespace Demo.ADTProcessing.DataIngress
 
         private void PublishMessages(IBus bus)
         {
-            var endpointUri = new Uri("rabbitmq://localhost/adt/Demo.ADTProcessing.Router");
+            var busHostUri = AppSettings["busHostUri"];
+            var routerQueueName = AppSettings["routerQueueName"];
+            var endpointUri = new Uri($"{busHostUri}/{routerQueueName}");
             var routerEndpoint = bus.GetSendEndpoint(endpointUri).Result;
 
             var stopwatch = new Stopwatch();
 
-            var testFacilities = _appSettings["testFacilities"].As<int>();
-            var testAccounts = _appSettings["testAccounts"].As<int>();
+            var testFacilities = AppSettings["testFacilities"].As<int>();
+            var testAccounts = AppSettings["testAccounts"].As<int>();
 
             while (true)
             {
                 stopwatch.Reset();
                 stopwatch.Start();
 
-                var expectedRatePerMinute = _appSettings["expectedRatePerMinute"].As<int>();
+                var expectedRatePerMinute = AppSettings["expectedRatePerMinute"].As<int>();
                 int remainder;
                 var expectedRatePerSecond = Math.DivRem(expectedRatePerMinute, 60, out remainder);
 
@@ -70,7 +73,8 @@ namespace Demo.ADTProcessing.DataIngress
         {
             return Bus.Factory.CreateUsingRabbitMq(sbc =>
             {
-                sbc.Host(new Uri("rabbitmq://localhost/adt"), h =>
+                var busHostUri = AppSettings["busHostUri"];
+                sbc.Host(new Uri(busHostUri), h =>
                 {
                     h.Username("guest");
                     h.Password("");

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Specialized;
+using System.Configuration;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
@@ -14,6 +16,7 @@ namespace Demo.ADTProcessing.Router
     public class ADTCommandConsumer : IConsumer<IADTCommand>
     {
         private readonly IConnection _connection;
+        private readonly NameValueCollection _appSettings = ConfigurationManager.AppSettings;
 
         public ADTCommandConsumer(IConnection connection)
         {
@@ -27,10 +30,13 @@ namespace Demo.ADTProcessing.Router
 
             Console.WriteLine($"{context.Message.FacilityId}-{context.Message.AccountNumber}");
 
+            var busHostUri = _appSettings["busHostUri"];
+            var routerQueueName = _appSettings["routerQueueName"];
+
             var key = GetKey(context.Message);
-            var endpointAddressUrl = $"rabbitmq://localhost/adt/Demo.ADTProcessing.Router.{key}";
+            var endpointAddressUrl = $"{busHostUri}/{routerQueueName}.{key}";
             var originalTimestamp = context.Message.Timestamp;
-            var queueDoesNotExist = Program.Queues.ContainsKey(endpointAddressUrl) == false;
+            bool queueDoesNotExist;
 
             //NOTE:     Sad case - worker tries to read from a queue that was just deleted after sequence command was sent.
             //          Had to increase the lock because the worker started having issues trying to read from a queue that had been deleted.  May want to do this as a single thread
@@ -38,7 +44,9 @@ namespace Demo.ADTProcessing.Router
             //NOTE:     Would like to limit this lock, by only locking for creation of queue and send to temporary queue...the rest can remain outside of that.
             lock (Lock.SyncRoot)
             {
-                if (Program.Queues.ContainsKey(endpointAddressUrl) == false)
+                queueDoesNotExist = Program.Queues.ContainsKey(endpointAddressUrl) == false;
+
+                if (queueDoesNotExist)
                 {
                     //lock (Lock.SyncRoot)
                     //{
@@ -77,7 +85,7 @@ namespace Demo.ADTProcessing.Router
                 .Publish<IMetricsEvent>(
                     new
                     {
-                        EventType = "Demo.ADTProcessing.Router",
+                        EventType = routerQueueName,
                         DelayInMilliseconds = delay,
                         ExecutionInMilliseconds = execution,
                         Successful = true

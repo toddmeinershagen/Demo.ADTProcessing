@@ -16,7 +16,8 @@ namespace Demo.ADTProcessing.Router
 
         public void Run()
         {
-            Console.WriteLine("Demo.ADTProcessing.Router::Hit ENTER to start.");
+            var routerQueueName = AppSettings["routerQueueName"];
+            Console.WriteLine($"{routerQueueName}::Hit ENTER to start.");
             Console.ReadLine();
 
             var factory = GetConnectionFactory();
@@ -40,7 +41,7 @@ namespace Demo.ADTProcessing.Router
 
             bus.Start();
 
-            Console.WriteLine("Router started.  Hit ENTER to end...");
+            Console.WriteLine($"{routerQueueName} started.  Hit ENTER to end...");
             Console.ReadLine();
 
             bus.Stop();
@@ -50,14 +51,16 @@ namespace Demo.ADTProcessing.Router
         {
             return Bus.Factory.CreateUsingRabbitMq(sbc =>
             {
-                var host = sbc.Host(new Uri("rabbitmq://localhost/adt"), h =>
+                var busHostUri = AppSettings["busHostUri"];
+                var host = sbc.Host(new Uri(busHostUri), h =>
                 {
                     h.Username("guest");
                     h.Password("");
                     h.Heartbeat(10);
                 });
 
-                sbc.ReceiveEndpoint(host, "Demo.ADTProcessing.Router", ep =>
+                var routerQueueName = AppSettings["routerQueueName"];
+                sbc.ReceiveEndpoint(host, routerQueueName, ep =>
                 {
                     //ep.Exclusive = true;
                     ep.Consumer<ADTCommandConsumer>(container, cfg =>
@@ -85,9 +88,10 @@ namespace Demo.ADTProcessing.Router
 
         private static ConnectionFactory GetConnectionFactory()
         {
+            var brokerHostUri = AppSettings["brokerHostUri"];
             return new ConnectionFactory
             {
-                Uri = "amqp://guest:guest@localhost:5672/adt",
+                Uri = brokerHostUri,
                 RequestedHeartbeat = 10,
                 AutomaticRecoveryEnabled = true,
                 NetworkRecoveryInterval = TimeSpan.FromSeconds(10)
