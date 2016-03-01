@@ -1,5 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Configuration;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 using Demo.ADTProcessing.Core;
@@ -10,15 +16,30 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Threading;
 
+using MassTransit.Internals.Reflection;
+using MassTransit.Serialization;
+using MassTransit.Serialization.JsonConverters;
+using MassTransit.Util;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
 namespace Demo.ADTProcessing.Worker
 {
     public class AccountSequenceCommandConsumer : IConsumer<IAccountSequenceCommand>
     {
+        private readonly NameValueCollection _appSettings = ConfigurationManager.AppSettings;
         private readonly IConnection _connection;
+        private readonly JsonSerializerSettings _settings;
 
         public AccountSequenceCommandConsumer(IConnection connection)
         {
             _connection = connection;
+            _settings = new JsonSerializerSettings();
+            _settings.Converters.Add(new InterfaceProxyConverter(new DynamicImplementationBuilder()));
+            _settings.Converters.Add(new ListJsonConverter());
+            _settings.Converters.Add(new MessageDataJsonConverter());
+            _settings.ContractResolver = new JsonContractResolver();
         }
 
         public Task Consume(ConsumeContext<IAccountSequenceCommand> context)
@@ -54,8 +75,32 @@ namespace Demo.ADTProcessing.Worker
                         timer.Stop();
 
                         counter++;
+
+                        var stopwatch = new Stopwatch();
+                        stopwatch.Start();
+
+                        var envelopeJson = Encoding.UTF8.GetString(args.Body);
+                        var envelope = JsonConvert.DeserializeObject<MessageEnvelope>(envelopeJson, _settings);
+                        var message = envelope.Message as JObject;
+
                         DoWork(context, counter);
                         channel.BasicAck(args.DeliveryTag, false);
+
+                        stopwatch.Stop();
+
+                        var delay = Round((DateTime.Now - message["timestamp"].Value<DateTime>()).TotalMilliseconds);
+                        var execution = Round(stopwatch.Elapsed.TotalMilliseconds);
+
+                        context
+                            .Publish<MetricsEvent>(
+                                new
+                                {
+                                    EventType = "Demo.ADTProcessing.Worker",
+                                    DelayInMilliseconds = delay,
+                                    ExecutionInMilliseconds = execution,
+                                    Successful = true
+                                })
+                            .Wait();
 
                         //if (_counter == 7)
                         //{
@@ -87,15 +132,32 @@ namespace Demo.ADTProcessing.Worker
             }
         }
 
+        private int Round(double value)
+        {
+            return Convert.ToInt32(Math.Round(value, MidpointRounding.AwayFromZero));
+        }
+
         private void DoWork(ConsumeContext<IAccountSequenceCommand> context, int counter)
         {
             Console.WriteLine($"{counter:0#}::{context.Message.QueueAddress}");
-            //Thread.Sleep(TimeSpan.FromSeconds(GetRandomNumber(4)));
-        }
+
+            var maxDelayInProcessing = _appSettings["maxProcessingDelayInSeconds"].As<int>();
+            Thread.Sleep(TimeSpan.FromSeconds(GetRandomNumber(maxDelayInProcessing)));
+    }
 
         private int GetRandomNumber(int maxNumber)
         {
+            if (maxNumber == 0)
+                return 0;
+
             return Math.Abs(Guid.NewGuid().GetHashCode() % maxNumber) + 1;
         }
+    }
+
+    public class ADTCommand : IADTCommand
+    {
+        public int FacilityId { get; set; }
+        public int AccountNumber { get; set; }
+        public DateTime Timestamp { get; set; }
     }
 }

@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo.ADTProcessing.Core", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo.ADTProcessing.Worker", "Demo.ADTProcessing.Worker\Demo.ADTProcessing.Worker.csproj", "{1FD74D4B-E22A-4799-9B94-1C487BF54235}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo.ADTProcessing.EventMetrics", "Demo.ADTProcessing.EventMetrics\Demo.ADTProcessing.EventMetrics.csproj", "{567548CB-086B-4CD0-B1CC-1497E14E7B9C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{1FD74D4B-E22A-4799-9B94-1C487BF54235}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1FD74D4B-E22A-4799-9B94-1C487BF54235}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1FD74D4B-E22A-4799-9B94-1C487BF54235}.Release|Any CPU.Build.0 = Release|Any CPU
+		{567548CB-086B-4CD0-B1CC-1497E14E7B9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{567548CB-086B-4CD0-B1CC-1497E14E7B9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{567548CB-086B-4CD0-B1CC-1497E14E7B9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{567548CB-086B-4CD0-B1CC-1497E14E7B9C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
