@@ -25,6 +25,7 @@ namespace Demo.ADTProcessing.Router
 
         public Task Consume(ConsumeContext<IADTCommand> context)
         {
+            var delay = (DateTime.Now - context.Message.Timestamp).TotalMilliseconds.Rounded();
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
@@ -35,7 +36,6 @@ namespace Demo.ADTProcessing.Router
 
             var key = GetKey(context.Message);
             var endpointAddressUrl = $"{busHostUri}/{routerQueueName}.{key}";
-            var originalTimestamp = context.Message.Timestamp;
             bool queueDoesNotExist;
 
             //NOTE:     Sad case - worker tries to read from a queue that was just deleted after sequence command was sent.
@@ -78,7 +78,6 @@ namespace Demo.ADTProcessing.Router
 
             stopwatch.Stop();
 
-            var delay = (DateTime.Now - originalTimestamp).TotalMilliseconds.Rounded();
             var execution = stopwatch.Elapsed.TotalMilliseconds.Rounded();
 
             return context
