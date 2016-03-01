@@ -75,6 +75,7 @@
   <ItemGroup>
     <Compile Include="EventConsumer.cs" />
     <Compile Include="EventsProcessor.cs" />
+    <Compile Include="MetricsEvent.cs" />
     <Compile Include="MetricsEventsModule.cs" />
     <Compile Include="MetricsEventType.cs" />
     <Compile Include="MetricsEventTypes.cs" />

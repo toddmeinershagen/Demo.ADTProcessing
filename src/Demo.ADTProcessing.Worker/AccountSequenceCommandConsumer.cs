@@ -82,7 +82,7 @@ namespace Demo.ADTProcessing.Worker
                     var execution = stopwatch.Elapsed.TotalMilliseconds.Rounded();
 
                     context
-                        .Publish<MetricsEvent>(
+                        .Publish<IMetricsEvent>(
                             new
                             {
                                 EventType = "Demo.ADTProcessing.Worker",

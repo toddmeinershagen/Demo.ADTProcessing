@@ -70,7 +70,7 @@ namespace Demo.ADTProcessing.Router
             var execution = stopwatch.Elapsed.TotalMilliseconds.Rounded();
 
             return context
-                .Publish<MetricsEvent>(
+                .Publish<IMetricsEvent>(
                     new
                     {
                         EventType = "Demo.ADTProcessing.Router",

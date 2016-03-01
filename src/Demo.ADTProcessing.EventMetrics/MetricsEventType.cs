@@ -6,7 +6,7 @@ namespace Demo.ADTProcessing.EventMetrics
 {
     public class MetricsEventType
     {
-        public MetricsEventType(MetricsEvent metricsEvent)
+        public MetricsEventType(IMetricsEvent metricsEvent)
         {
             Name = metricsEvent.EventType;
 
@@ -30,7 +30,7 @@ namespace Demo.ADTProcessing.EventMetrics
             Count = 1;
         }
 
-        public void AddEvent(MetricsEvent metricsEvent)
+        public void AddEvent(IMetricsEvent metricsEvent)
         {
             if (metricsEvent.DelayInMilliseconds < MinDelayInMilliseconds)
                 MinDelayInMilliseconds = metricsEvent.DelayInMilliseconds;

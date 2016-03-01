@@ -7,11 +7,11 @@ using MassTransit;
 
 namespace Demo.ADTProcessing.EventMetrics
 {
-    public class EventConsumer : IConsumer<MetricsEvent>
+    public class EventConsumer : IConsumer<IMetricsEvent>
     {
         private static readonly object SyncRoot = new object();
 
-        public Task Consume(ConsumeContext<MetricsEvent> context)
+        public Task Consume(ConsumeContext<IMetricsEvent> context)
         {
             lock (SyncRoot)
             {

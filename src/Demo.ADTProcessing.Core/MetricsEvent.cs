@@ -2,11 +2,11 @@
 
 namespace Demo.ADTProcessing.Core
 {
-    public class MetricsEvent
+    public interface IMetricsEvent
     {
-        public string EventType { get; set; }
-        public int DelayInMilliseconds { get; set; }
-        public int ExecutionInMilliseconds { get; set; }
-        public bool Successful { get; set; }
+        string EventType { get; set; }
+        int DelayInMilliseconds { get; set; }
+        int ExecutionInMilliseconds { get; set; }
+        bool Successful { get; set; }
     }
 }
