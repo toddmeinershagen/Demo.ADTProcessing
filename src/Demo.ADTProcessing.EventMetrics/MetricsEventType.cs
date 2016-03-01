@@ -6,6 +6,8 @@ namespace Demo.ADTProcessing.EventMetrics
 {
     public class MetricsEventType
     {
+        public MetricsEventType() { }
+
         public MetricsEventType(IMetricsEvent metricsEvent)
         {
             Name = metricsEvent.EventType;

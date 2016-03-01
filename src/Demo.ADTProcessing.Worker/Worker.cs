@@ -41,12 +41,15 @@ namespace Demo.ADTProcessing.Worker
         {
             return Bus.Factory.CreateUsingRabbitMq(sbc =>
             {
-                var busHostUri = AppSettings["busHostUri"];
+                var busHostUri = new Uri(AppSettings["busHostUri"]);
+                var username = busHostUri.UserInfo.Split(':')[0];
+                var password = busHostUri.UserInfo.Split(':')[1];
                 var workerQueueName = AppSettings["workerQueueName"];
-                var host = sbc.Host(new Uri(busHostUri), h =>
+
+                var host = sbc.Host(busHostUri, h =>
                 {
-                    h.Username("guest");
-                    h.Password("");
+                    h.Username(username);
+                    h.Password(password);
                     h.Heartbeat(10);
                 });
 

@@ -41,7 +41,7 @@ namespace Demo.ADTProcessing.Worker
 
         public Task Consume(ConsumeContext<IAccountSequenceCommand> context)
         {
-            Console.Out.WriteLine($"{context.Message.QueueAddress}");
+            Console.Out.WriteLine($"{GetQueueName(context)}");
 
             ProcessMessages(context);
 
@@ -65,8 +65,7 @@ namespace Demo.ADTProcessing.Worker
                 while (consumer.Queue.Dequeue(receiveTimeoutInMiliseconds, out args) && counter < maxMessagesToProcess)
                 {
                     var successful = true;
-                    DateTime timestamp = DateTime.Now;
-
+                    var delay = 0;
                     counter++;
 
                     var stopwatch = new Stopwatch();
@@ -80,7 +79,8 @@ namespace Demo.ADTProcessing.Worker
 
                         if (message != null)
                         {
-                            timestamp = message["timestamp"].Value<DateTime>();
+                            var timestamp = message["timestamp"].Value<DateTime>();
+                            delay = (DateTime.Now - timestamp).TotalMilliseconds.Rounded();
                         }
 
                         DoWork(context, counter);
@@ -92,9 +92,7 @@ namespace Demo.ADTProcessing.Worker
                     }
 
                     stopwatch.Stop();
-
                     var execution = stopwatch.Elapsed.TotalMilliseconds.Rounded();
-                    var delay = (DateTime.Now - timestamp).TotalMilliseconds.Rounded();
 
                     SendMetricsEvent(context, delay, execution, successful);
                 }
@@ -118,11 +116,16 @@ namespace Demo.ADTProcessing.Worker
 
         private void DoWork(ConsumeContext<IAccountSequenceCommand> context, int counter)
         {
-            Console.WriteLine($"{counter:0#}::{context.Message.QueueAddress}");
+            Console.WriteLine($"{counter:0#}::{GetQueueName(context)}");
 
             var maxDelayInProcessing = AppSettings["maxProcessingDelayInSeconds"].As<int>();
             Thread.Sleep(TimeSpan.FromSeconds(GetRandomNumber(maxDelayInProcessing)));
-    }
+        }
+
+        private string GetQueueName(ConsumeContext<IAccountSequenceCommand> context)
+        {
+            return new Uri(context.Message.QueueAddress).Segments.LastOrDefault();
+        }
 
         private int GetRandomNumber(int maxNumber)
         {
