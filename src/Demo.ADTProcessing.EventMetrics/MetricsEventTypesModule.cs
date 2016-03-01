@@ -3,6 +3,10 @@ using Nancy.ModelBinding;
 
 namespace Demo.ADTProcessing.EventMetrics
 {
+    /// <summary>
+    /// http://localhost:9090/api/MetricsEventTypes/Demo.ADTProcessing.Worker
+    /// Accept: application/json
+    /// </summary>
     public class MetricsEventTypesModule : NancyModule
     {
         public MetricsEventTypesModule()
@@ -24,6 +28,13 @@ namespace Demo.ADTProcessing.EventMetrics
                 string url = $"{Request.Url.SiteBase}{Request.Path}/{eventType.Name}";
                 return Negotiate
                     .WithHeader("Location", url)
+                    .WithStatusCode(HttpStatusCode.Created);
+            };
+
+            Post["/Clear"] = _ =>
+            {
+                MetricsEventTypes.Clear();
+                return Negotiate
                     .WithStatusCode(HttpStatusCode.Created);
             };
         }

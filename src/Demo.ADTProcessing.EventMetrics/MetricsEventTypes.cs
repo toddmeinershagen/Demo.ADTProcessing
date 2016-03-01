@@ -17,5 +17,10 @@ namespace Demo.ADTProcessing.EventMetrics
         {
             Items.AddOrUpdate(eventType.Name, eventType, (key, metric) => eventType);
         }
+
+        public static void Clear()
+        {
+            Items.Clear();
+        }
     }
 }

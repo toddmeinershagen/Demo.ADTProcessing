@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 using Demo.ADTProcessing.Core;
@@ -21,10 +22,14 @@ namespace Demo.ADTProcessing.Router
 
         public Task Consume(ConsumeContext<IADTCommand> context)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             Console.WriteLine($"{context.Message.FacilityId}-{context.Message.AccountNumber}");
 
             var key = GetKey(context.Message);
             var endpointAddressUrl = $"rabbitmq://localhost/adt/Demo.ADTProcessing.Router.{key}";
+            var originalTimestamp = context.Message.Timestamp;
 
             //NOTE:     Sad case - worker tries to read from a queue that was just deleted after sequence command was sent.
             //          Had to increase the lock because the worker started having issues trying to read from a queue that had been deleted.  May want to do this as a single thread
@@ -51,11 +56,28 @@ namespace Demo.ADTProcessing.Router
 
                 var endpointUri = new Uri(endpointAddressUrl);
 
+                
                 context.Message.Timestamp = DateTime.Now;
-                return context
+                context
                     .GetSendEndpoint(endpointUri).Result
-                    .Send(context.Message);
+                    .Send(context.Message).Wait();
             }
+
+            stopwatch.Stop();
+
+
+            var delay = (DateTime.Now - originalTimestamp).TotalMilliseconds.Rounded();
+            var execution = stopwatch.Elapsed.TotalMilliseconds.Rounded();
+
+            return context
+                .Publish<MetricsEvent>(
+                    new
+                    {
+                        EventType = "Demo.ADTProcessing.Router",
+                        DelayInMilliseconds = delay,
+                        ExecutionInMilliseconds = execution,
+                        Successful = true
+                    });
         }
 
         public string GetKey(IADTCommand command)
