@@ -64,35 +64,55 @@ namespace Demo.ADTProcessing.Worker
 
                 while (consumer.Queue.Dequeue(receiveTimeoutInMiliseconds, out args) && counter < maxMessagesToProcess)
                 {
+                    var successful = true;
+                    DateTime timestamp = DateTime.Now;
+
                     counter++;
 
                     var stopwatch = new Stopwatch();
                     stopwatch.Start();
 
-                    var envelopeJson = Encoding.UTF8.GetString(args.Body);
-                    var envelope = JsonConvert.DeserializeObject<MessageEnvelope>(envelopeJson, _settings);
-                    var message = envelope.Message as JObject;
+                    try
+                    {
+                        var envelopeJson = Encoding.UTF8.GetString(args.Body);
+                        var envelope = JsonConvert.DeserializeObject<MessageEnvelope>(envelopeJson, _settings);
+                        var message = envelope.Message as JObject;
 
-                    DoWork(context, counter);
-                    channel.BasicAck(args.DeliveryTag, false);
+                        if (message != null)
+                        {
+                            timestamp = message["timestamp"].Value<DateTime>();
+                        }
+
+                        DoWork(context, counter);
+                        channel.BasicAck(args.DeliveryTag, false);
+                    }
+                    catch (Exception)
+                    {
+                        successful = false;
+                    }
 
                     stopwatch.Stop();
 
-                    var delay = (DateTime.Now - message["timestamp"].Value<DateTime>()).TotalMilliseconds.Rounded();
                     var execution = stopwatch.Elapsed.TotalMilliseconds.Rounded();
+                    var delay = (DateTime.Now - timestamp).TotalMilliseconds.Rounded();
 
-                    context
-                        .Publish<IMetricsEvent>(
-                            new
-                            {
-                                EventType = "Demo.ADTProcessing.Worker",
-                                DelayInMilliseconds = delay,
-                                ExecutionInMilliseconds = execution,
-                                Successful = true
-                            })
-                        .Wait();
+                    SendMetricsEvent(context, delay, execution, successful);
                 }
             }
+        }
+
+        private static void SendMetricsEvent(ConsumeContext<IAccountSequenceCommand> context, int delay, int execution, bool successful)
+        {
+            context
+                .Publish<IMetricsEvent>(
+                    new
+                    {
+                        EventType = "Demo.ADTProcessing.Worker",
+                        DelayInMilliseconds = delay,
+                        ExecutionInMilliseconds = execution,
+                        Successful = true
+                    })
+                .Wait();
         }
 
         private void DoWork(ConsumeContext<IAccountSequenceCommand> context, int counter)

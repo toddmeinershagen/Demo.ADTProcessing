@@ -56,8 +56,8 @@ namespace Demo.ADTProcessing.Router
 
                 var endpointUri = new Uri(endpointAddressUrl);
 
-                
-                context.Message.Timestamp = DateTime.Now;
+                //NOTE:  Should we update the timestamp or just measure from the first time the message was inserted?
+                //context.Message.Timestamp = DateTime.Now;
                 context
                     .GetSendEndpoint(endpointUri).Result
                     .Send(context.Message).Wait();
