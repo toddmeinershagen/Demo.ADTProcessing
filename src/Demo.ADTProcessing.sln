@@ -20,6 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		get-stats.ps1 = get-stats.ps1
 		Local.testsettings = Local.testsettings
 		start-dataingress.bat = start-dataingress.bat
+		start-eventmetrics.bat = start-eventmetrics.bat
 		start-router.bat = start-router.bat
 		start-worker.bat = start-worker.bat
 	EndProjectSection

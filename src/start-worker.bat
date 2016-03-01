@@ -1,2 +1,2 @@
-cd \temp\debug
+cd \temp\release
 demo.adtprocessing.worker.exe
