@@ -30,6 +30,7 @@ namespace Demo.ADTProcessing.Router
             var key = GetKey(context.Message);
             var endpointAddressUrl = $"rabbitmq://localhost/adt/Demo.ADTProcessing.Router.{key}";
             var originalTimestamp = context.Message.Timestamp;
+            var queueDoesNotExist = Program.Queues.ContainsKey(endpointAddressUrl) == false;
 
             //NOTE:     Sad case - worker tries to read from a queue that was just deleted after sequence command was sent.
             //          Had to increase the lock because the worker started having issues trying to read from a queue that had been deleted.  May want to do this as a single thread
@@ -41,17 +42,10 @@ namespace Demo.ADTProcessing.Router
                 {
                     //lock (Lock.SyncRoot)
                     //{
-                        //NOTE:     Sad case - delete queue before publish to bound queue
-                        //          Originally, put a lock around just the bind and around the delete to make sure that a queue doesn't get deleted and you try to publish to it.
-                        BindQueue(endpointAddressUrl);
-
-                        context
-                            .Publish<IAccountSequenceCommand>(new {QueueAddress = endpointAddressUrl})
-                            .Wait();
+                    //NOTE:     Sad case - delete queue before publish to bound queue
+                    //          Originally, put a lock around just the bind and around the delete to make sure that a queue doesn't get deleted and you try to publish to it.
+                    BindQueue(endpointAddressUrl);
                     //}
-                    while (Program.Queues.TryAdd(endpointAddressUrl, endpointAddressUrl) == false)
-                    {
-                    }
                 }
 
                 var endpointUri = new Uri(endpointAddressUrl);
@@ -63,8 +57,18 @@ namespace Demo.ADTProcessing.Router
                     .Send(context.Message).Wait();
             }
 
-            stopwatch.Stop();
+            if (queueDoesNotExist)
+            {
+                context
+                    .Publish<IAccountSequenceCommand>(new {QueueAddress = endpointAddressUrl})
+                    .Wait();
 
+                while (Program.Queues.TryAdd(endpointAddressUrl, endpointAddressUrl) == false)
+                {
+                }
+            }
+
+            stopwatch.Stop();
 
             var delay = (DateTime.Now - originalTimestamp).TotalMilliseconds.Rounded();
             var execution = stopwatch.Elapsed.TotalMilliseconds.Rounded();
