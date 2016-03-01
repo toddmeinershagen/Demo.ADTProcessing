@@ -111,11 +111,4 @@ namespace Demo.ADTProcessing.Worker
             return Math.Abs(Guid.NewGuid().GetHashCode() % maxNumber) + 1;
         }
     }
-
-    public class ADTCommand : IADTCommand
-    {
-        public int FacilityId { get; set; }
-        public int AccountNumber { get; set; }
-        public DateTime Timestamp { get; set; }
-    }
 }
