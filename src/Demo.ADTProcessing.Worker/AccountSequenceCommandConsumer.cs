@@ -21,10 +21,15 @@ using MassTransit.Serialization.JsonConverters;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+using NLog;
+
+using Logger = MassTransit.Logging.Logger;
+
 namespace Demo.ADTProcessing.Worker
 {
     public class AccountSequenceCommandConsumer : IConsumer<IAccountSequenceCommand>
     {
+        private static readonly NLog.Logger Logger = LogManager.GetCurrentClassLogger();
         private static readonly NameValueCollection AppSettings = ConfigurationManager.AppSettings;
         private readonly IConnection _connection;
         private readonly JsonSerializerSettings _settings;
@@ -66,6 +71,7 @@ namespace Demo.ADTProcessing.Worker
                 {
                     var successful = true;
                     var delay = 0;
+                    IADTCommand adtCommand = null;
                     counter++;
 
                     var stopwatch = new Stopwatch();
@@ -76,12 +82,8 @@ namespace Demo.ADTProcessing.Worker
                         var envelopeJson = Encoding.UTF8.GetString(args.Body);
                         var envelope = JsonConvert.DeserializeObject<MessageEnvelope>(envelopeJson, _settings);
                         var message = envelope.Message as JObject;
-
-                        if (message != null)
-                        {
-                            var timestamp = message["timestamp"].Value<DateTime>();
-                            delay = (DateTime.Now - timestamp).TotalMilliseconds.Rounded();
-                        }
+                        adtCommand = message?.ToObject<ADTCommand>();
+                        delay = (DateTime.Now - adtCommand.Timestamp).TotalMilliseconds.Rounded();
 
                         DoWork(context, counter);
                         channel.BasicAck(args.DeliveryTag, false);
@@ -95,6 +97,9 @@ namespace Demo.ADTProcessing.Worker
                     var execution = stopwatch.Elapsed.TotalMilliseconds.Rounded();
 
                     SendMetricsEvent(context, delay, execution, successful);
+
+                    if (Logger.IsInfoEnabled && adtCommand != null)
+                        Logger.Info($"{adtCommand.FacilityId},{adtCommand.AccountNumber},{adtCommand.Sequence}");
                 }
             }
         }
@@ -109,7 +114,7 @@ namespace Demo.ADTProcessing.Worker
                         EventType = workerQueueName,
                         DelayInMilliseconds = delay,
                         ExecutionInMilliseconds = execution,
-                        Successful = true
+                        Successful = successful
                     })
                 .Wait();
         }
@@ -134,5 +139,13 @@ namespace Demo.ADTProcessing.Worker
 
             return Math.Abs(Guid.NewGuid().GetHashCode() % maxNumber) + 1;
         }
+    }
+
+    public class ADTCommand : IADTCommand
+    {
+        public int FacilityId { get; set; }
+        public int AccountNumber { get; set; }
+        public int Sequence { get; set; }
+        public DateTime Timestamp { get; set; }
     }
 }

@@ -6,6 +6,7 @@ namespace Demo.ADTProcessing.Core
     {
         int FacilityId { get; set; }
         int AccountNumber { get; set; }
+        int Sequence { get; set; }
         DateTime Timestamp { get; set; }
     }
 }

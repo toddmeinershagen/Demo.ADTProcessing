@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
 using System.Diagnostics;
@@ -43,6 +44,7 @@ namespace Demo.ADTProcessing.DataIngress
 
             var testFacilities = AppSettings["testFacilities"].As<int>();
             var testAccounts = AppSettings["testAccounts"].As<int>();
+            var accountSequences = GetAccountSequences(testFacilities, testAccounts);
 
             while (true)
             {
@@ -55,7 +57,9 @@ namespace Demo.ADTProcessing.DataIngress
 
                 foreach (var count in Enumerable.Range(0, expectedRatePerSecond))
                 {
-                    var command = new {FacilityId = GetRandomNumber(testFacilities), AccountNumber = GetRandomNumber(testAccounts), Timestamp = DateTime.Now};
+                    var facility = GetRandomNumber(testFacilities);
+                    var account = GetRandomNumber(testAccounts);
+                    var command = new {FacilityId = facility, AccountNumber = account, Sequence = ++accountSequences[GetKey(facility, account)], Timestamp = DateTime.Now};
 
                     routerEndpoint
                         .Send<IADTCommand>(command);
@@ -67,6 +71,24 @@ namespace Demo.ADTProcessing.DataIngress
                 var timeLeft = TimeSpan.FromSeconds(1) - stopwatch.Elapsed;
                 Thread.Sleep(timeLeft < TimeSpan.Zero ? TimeSpan.Zero : timeLeft);
             }
+        }
+
+        private IDictionary<string, int> GetAccountSequences(int facilities, int accounts)
+        {
+            var accountSequences = new Dictionary<string, int>(facilities*accounts);
+            for (var facilityIndex = 1; facilityIndex <= facilities; facilityIndex++)
+            {
+                for (var accountIndex = 1; accountIndex <= accounts; accountIndex++)
+                {
+                    accountSequences.Add(GetKey(facilityIndex, accountIndex), 0);
+                }
+            }
+            return accountSequences;
+        }
+
+        private string GetKey(int facility, int account)
+        {
+            return $"{facility}-{account}";
         }
 
         private static IBusControl CreateBus()
