@@ -23,8 +23,6 @@ using Newtonsoft.Json.Linq;
 
 using NLog;
 
-using Logger = MassTransit.Logging.Logger;
-
 namespace Demo.ADTProcessing.Worker
 {
     public class AccountSequenceCommandConsumer : IConsumer<IAccountSequenceCommand>

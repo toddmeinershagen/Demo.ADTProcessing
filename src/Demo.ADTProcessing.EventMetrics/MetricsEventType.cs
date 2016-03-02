@@ -2,10 +2,16 @@
 
 using Demo.ADTProcessing.Core;
 
+using Newtonsoft.Json;
+
+using NLog;
+
 namespace Demo.ADTProcessing.EventMetrics
 {
     public class MetricsEventType
     {
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         public MetricsEventType() { }
 
         public MetricsEventType(IMetricsEvent metricsEvent)
@@ -34,6 +40,11 @@ namespace Demo.ADTProcessing.EventMetrics
 
         public void AddEvent(IMetricsEvent metricsEvent)
         {
+            if (Logger.IsInfoEnabled)
+            {
+                Logger.Info(JsonConvert.SerializeObject(metricsEvent));
+            }
+
             if (metricsEvent.DelayInMilliseconds < MinDelayInMilliseconds)
                 MinDelayInMilliseconds = metricsEvent.DelayInMilliseconds;
 
