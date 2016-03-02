@@ -67,6 +67,8 @@ namespace Demo.ADTProcessing.Worker
                 BasicDeliverEventArgs args;
                 var maxMessagesToProcess = AppSettings["maxMessagesToProcess"].As<int>();
 
+                var stopwatch = new Stopwatch();
+
                 while (counter < maxMessagesToProcess && consumer.Queue.Dequeue(receiveTimeoutInMiliseconds, out args))
                 {
                     var pickupTimestamp = DateTime.Now;
@@ -75,7 +77,7 @@ namespace Demo.ADTProcessing.Worker
                     IADTCommand adtCommand = null;
                     counter++;
 
-                    var stopwatch = new Stopwatch();
+                    stopwatch.Reset();
                     stopwatch.Start();
 
                     try
