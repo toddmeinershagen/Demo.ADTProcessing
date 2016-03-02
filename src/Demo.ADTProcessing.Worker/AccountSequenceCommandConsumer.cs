@@ -30,11 +30,13 @@ namespace Demo.ADTProcessing.Worker
         private static readonly NLog.Logger Logger = LogManager.GetCurrentClassLogger();
         private static readonly NameValueCollection AppSettings = ConfigurationManager.AppSettings;
         private readonly IConnection _connection;
+        private readonly IConsole _console;
         private readonly JsonSerializerSettings _settings;
 
-        public AccountSequenceCommandConsumer(IConnection connection)
+        public AccountSequenceCommandConsumer(IConnection connection, IConsole console)
         {
             _connection = connection;
+            _console = console;
             _settings = new JsonSerializerSettings();
             _settings.Converters.Add(new InterfaceProxyConverter(new DynamicImplementationBuilder()));
             _settings.Converters.Add(new ListJsonConverter());
@@ -44,7 +46,7 @@ namespace Demo.ADTProcessing.Worker
 
         public Task Consume(ConsumeContext<IAccountSequenceCommand> context)
         {
-            Console.Out.WriteLine($"{GetQueueName(context)}");
+            _console.WriteLine($"{GetQueueName(context)}");
 
             ProcessMessages(context);
 
@@ -65,7 +67,7 @@ namespace Demo.ADTProcessing.Worker
                 BasicDeliverEventArgs args;
                 var maxMessagesToProcess = AppSettings["maxMessagesToProcess"].As<int>();
 
-                while (consumer.Queue.Dequeue(receiveTimeoutInMiliseconds, out args) && counter < maxMessagesToProcess)
+                while (counter < maxMessagesToProcess && consumer.Queue.Dequeue(receiveTimeoutInMiliseconds, out args))
                 {
                     var pickupTimestamp = DateTime.Now;
                     var successful = true;
@@ -120,7 +122,7 @@ namespace Demo.ADTProcessing.Worker
 
         private void DoWork(ConsumeContext<IAccountSequenceCommand> context, int counter)
         {
-            Console.WriteLine($"{counter:0#}::{GetQueueName(context)}");
+            _console.WriteLine($"{counter:0#}::{GetQueueName(context)}");
 
             var maxDelayInProcessing = AppSettings["maxProcessingDelayInSeconds"].As<int>();
             Thread.Sleep(TimeSpan.FromSeconds(GetRandomNumber(maxDelayInProcessing)));
@@ -138,13 +140,5 @@ namespace Demo.ADTProcessing.Worker
 
             return Math.Abs(Guid.NewGuid().GetHashCode() % maxNumber) + 1;
         }
-    }
-
-    public class ADTCommand : IADTCommand
-    {
-        public int FacilityId { get; set; }
-        public int AccountNumber { get; set; }
-        public int Sequence { get; set; }
-        public DateTime Timestamp { get; set; }
     }
 }

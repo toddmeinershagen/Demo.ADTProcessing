@@ -7,6 +7,7 @@ namespace Demo.ADTProcessing.Core
         string EventType { get; set; }
         int DelayInMilliseconds { get; set; }
         int ExecutionInMilliseconds { get; set; }
+        DateTime Timestamp { get; set; }
         bool Successful { get; set; }
     }
 }

@@ -12,7 +12,9 @@ namespace Demo.ADTProcessing.EventMetrics
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public MetricsEventType() { }
+        public MetricsEventType()
+        {
+        }
 
         public MetricsEventType(IMetricsEvent metricsEvent)
         {
@@ -25,6 +27,9 @@ namespace Demo.ADTProcessing.EventMetrics
             MinExecutionInMilliseconds = metricsEvent.ExecutionInMilliseconds;
             MaxExecutionInMilliseconds = metricsEvent.ExecutionInMilliseconds;
             TotalExecutionInMilliseconds = metricsEvent.ExecutionInMilliseconds;
+
+            FirstMessageTimestamp = metricsEvent.Timestamp;
+            LastMessageTimestamp = metricsEvent.Timestamp;
 
             if (metricsEvent.Successful)
             {
@@ -55,6 +60,8 @@ namespace Demo.ADTProcessing.EventMetrics
 
             TotalExecutionInMilliseconds = TotalExecutionInMilliseconds + metricsEvent.ExecutionInMilliseconds;
 
+            LastMessageTimestamp = metricsEvent.Timestamp;
+
             if (metricsEvent.Successful)
             {
                 Successes = Successes + 1;
@@ -69,7 +76,7 @@ namespace Demo.ADTProcessing.EventMetrics
 
         public string Name { get; set; }
         public int MinDelayInMilliseconds { get; set; }
-        public int AvgDelayInMilliseconds => TotalDelayInMilliseconds / Count;
+        public int AvgDelayInMilliseconds => TotalDelayInMilliseconds/Count;
         public int MaxDelayInMilliseconds { get; set; }
         public int TotalDelayInMilliseconds { get; set; }
 
@@ -82,5 +89,23 @@ namespace Demo.ADTProcessing.EventMetrics
         public int Successes { get; set; }
         public int Failures { get; set; }
         public int Count { get; set; }
+        public DateTime FirstMessageTimestamp { get; set; }
+        public DateTime LastMessageTimestamp { get; set; }
+
+        public int MessagesPerSecond
+        {
+            get
+            {
+                var interval = LastMessageTimestamp - FirstMessageTimestamp;
+                if (interval == TimeSpan.Zero)
+                {
+                    return Count;
+                }
+                else
+                {
+                    return (Count / interval.TotalSeconds).Rounded();
+                }
+            }
+        }
     }
 }

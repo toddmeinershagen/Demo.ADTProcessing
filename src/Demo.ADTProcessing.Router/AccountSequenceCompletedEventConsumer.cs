@@ -14,10 +14,12 @@ namespace Demo.ADTProcessing.Router
     public class AccountSequenceCompletedEventConsumer : IConsumer<IAccountSequenceCompletedEvent>
     {
         private readonly IConnection _connection;
+        private readonly IConsole _console;
 
-        public AccountSequenceCompletedEventConsumer(IConnection connection)
+        public AccountSequenceCompletedEventConsumer(IConnection connection, IConsole console)
         {
             _connection = connection;
+            _console = console;
         }
 
         public Task Consume(ConsumeContext<IAccountSequenceCompletedEvent> context)
@@ -52,7 +54,7 @@ namespace Demo.ADTProcessing.Router
                 channel.Close(200, "Ok");
             }
 
-            return Console.Out.WriteLineAsync($"{context.Message.QueueAddress}");
+            return Task.Factory.StartNew(() => _console.WriteLine($"{context.Message.QueueAddress}"));
         }
 
         private void DeleteQueue(string addressUrl)

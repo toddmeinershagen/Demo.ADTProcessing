@@ -16,11 +16,13 @@ namespace Demo.ADTProcessing.Router
     public class ADTCommandConsumer : IConsumer<IADTCommand>
     {
         private readonly IConnection _connection;
+        private readonly IConsole _console;
         private readonly NameValueCollection _appSettings = ConfigurationManager.AppSettings;
 
-        public ADTCommandConsumer(IConnection connection)
+        public ADTCommandConsumer(IConnection connection, IConsole console)
         {
             _connection = connection;
+            _console = console;
         }
 
         public Task Consume(ConsumeContext<IADTCommand> context)
@@ -29,7 +31,7 @@ namespace Demo.ADTProcessing.Router
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            Console.WriteLine($"{context.Message.FacilityId}-{context.Message.AccountNumber}");
+            _console.WriteLine($"{context.Message.FacilityId}-{context.Message.AccountNumber}");
 
             var busHostUri = _appSettings["busHostUri"];
             var routerQueueName = _appSettings["routerQueueName"];

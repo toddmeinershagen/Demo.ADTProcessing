@@ -2,6 +2,8 @@
 using System.Collections.Specialized;
 using System.Configuration;
 
+using Demo.ADTProcessing.Core;
+
 using MassTransit;
 
 using RabbitMQ.Client;
@@ -26,6 +28,7 @@ namespace Demo.ADTProcessing.Router
             var container = new Container(cfg =>
             {
                 cfg.For<IConnection>().Use(connection);
+                cfg.For<IConsole>().Use<NullConsole>();
                 cfg.ForConcreteType<ADTCommandConsumer>();
                 cfg.ForConcreteType<AccountSequenceCompletedEventConsumer>();
             });

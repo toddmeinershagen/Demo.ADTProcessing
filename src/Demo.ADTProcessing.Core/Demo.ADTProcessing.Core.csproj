@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DoubleExtensions.cs" />
+    <Compile Include="IConsole.cs" />
     <Compile Include="MetricsEvent.cs" />
     <Compile Include="IAccountSequenceCommand.cs" />
     <Compile Include="IAccountSequenceCompletedEvent.cs" />

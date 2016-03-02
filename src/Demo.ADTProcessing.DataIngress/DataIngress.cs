@@ -64,7 +64,7 @@ namespace Demo.ADTProcessing.DataIngress
                     routerEndpoint
                         .Send<IADTCommand>(command);
 
-                    Console.WriteLine($"{command.FacilityId}-{command.AccountNumber}");
+                    Console.Out.WriteLineAsync($"{command.FacilityId}-{command.AccountNumber}");
                 }
                 stopwatch.Stop();
 
