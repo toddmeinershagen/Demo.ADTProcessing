@@ -41,6 +41,7 @@ namespace Demo.ADTProcessing.Worker
         {
             return Bus.Factory.CreateUsingRabbitMq(sbc =>
             {
+                var numberOfWorkers = AppSettings["numberOfWorkers"].As<int>();
                 var busHostUri = new Uri(AppSettings["busHostUri"]);
                 var username = busHostUri.UserInfo.Split(':')[0];
                 var password = busHostUri.UserInfo.Split(':')[1];
@@ -57,9 +58,9 @@ namespace Demo.ADTProcessing.Worker
                 {
                     ep.Consumer<AccountSequenceCommandConsumer>(container, cfg =>
                     {
-                        var numberOfWorkers = AppSettings["numberOfWorkers"].As<int>();
                         cfg.UseConcurrencyLimit(numberOfWorkers);
                     });
+                    ep.PrefetchCount = Convert.ToUInt16(numberOfWorkers);
                 });
             });
         }

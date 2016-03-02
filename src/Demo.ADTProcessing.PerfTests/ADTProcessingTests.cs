@@ -14,7 +14,7 @@ namespace Demo.ADTProcessing.PerfTests
             //TODO:  Keep test going until the REST endpoint clears
             while (true)
             {
-                Thread.Sleep(TimeSpan.FromMinutes(2));
+                Thread.Sleep(TimeSpan.FromSeconds(2));
             }
         }
     }
