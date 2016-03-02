@@ -67,6 +67,7 @@ namespace Demo.ADTProcessing.Worker
 
                 while (consumer.Queue.Dequeue(receiveTimeoutInMiliseconds, out args) && counter < maxMessagesToProcess)
                 {
+                    var pickupTimestamp = DateTime.Now;
                     var successful = true;
                     var delay = 0;
                     IADTCommand adtCommand = null;
@@ -81,7 +82,7 @@ namespace Demo.ADTProcessing.Worker
                         var envelope = JsonConvert.DeserializeObject<MessageEnvelope>(envelopeJson, _settings);
                         var message = envelope.Message as JObject;
                         adtCommand = message?.ToObject<ADTCommand>();
-                        delay = (DateTime.Now - adtCommand.Timestamp).TotalMilliseconds.Rounded();
+                        delay = (pickupTimestamp - adtCommand.Timestamp).TotalMilliseconds.Rounded();
 
                         DoWork(context, counter);
                         channel.BasicAck(args.DeliveryTag, false);

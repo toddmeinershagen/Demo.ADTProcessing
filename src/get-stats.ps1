@@ -10,12 +10,14 @@ while ($true)
         $router = Invoke-RestMethod "http://$hostName`:9090/api/MetricsEventTypes/Demo.ADTProcessing.Router" -Headers $headers
         $worker = Invoke-RestMethod "http://$hostName`:9090/api/MetricsEventTypes/Demo.ADTProcessing.Worker" -Headers $headers
 
+        $avgRouterDelay = $router.avgDelayInMilliseconds
+        $avgRouterExecution = $router.avgExecutionInMilliseconds
         $avgDelay = $worker.avgDelayInMilliseconds
         $avgExecution = $worker.avgExecutionInMilliseconds
 
         if ($avgDelay)
         {     
-            "$avgDelay - $avgExecution"       
+            "$avgrouterExecution ($avgRouterDelay) :: $avgExecution ($avgDelay)"       
         }
         else
         {

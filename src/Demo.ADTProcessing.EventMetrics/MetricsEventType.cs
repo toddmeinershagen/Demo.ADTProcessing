@@ -45,19 +45,13 @@ namespace Demo.ADTProcessing.EventMetrics
                 Logger.Info(JsonConvert.SerializeObject(metricsEvent));
             }
 
-            if (metricsEvent.DelayInMilliseconds < MinDelayInMilliseconds)
-                MinDelayInMilliseconds = metricsEvent.DelayInMilliseconds;
-
-            if (metricsEvent.DelayInMilliseconds > MaxDelayInMilliseconds)
-                MaxDelayInMilliseconds = metricsEvent.DelayInMilliseconds;
+            MinDelayInMilliseconds = Math.Min(MinDelayInMilliseconds, metricsEvent.DelayInMilliseconds);
+            MaxDelayInMilliseconds = Math.Max(MaxDelayInMilliseconds, metricsEvent.DelayInMilliseconds);
 
             TotalDelayInMilliseconds = TotalDelayInMilliseconds + metricsEvent.DelayInMilliseconds;
 
-            if (metricsEvent.ExecutionInMilliseconds < MinExecutionInMilliseconds)
-                MinExecutionInMilliseconds = metricsEvent.ExecutionInMilliseconds;
-
-            if (metricsEvent.ExecutionInMilliseconds > MaxExecutionInMilliseconds)
-                MaxExecutionInMilliseconds = metricsEvent.ExecutionInMilliseconds;
+            MinExecutionInMilliseconds = Math.Min(MinExecutionInMilliseconds, metricsEvent.ExecutionInMilliseconds);
+            MaxExecutionInMilliseconds = Math.Max(MaxExecutionInMilliseconds, metricsEvent.ExecutionInMilliseconds);
 
             TotalExecutionInMilliseconds = TotalExecutionInMilliseconds + metricsEvent.ExecutionInMilliseconds;
 

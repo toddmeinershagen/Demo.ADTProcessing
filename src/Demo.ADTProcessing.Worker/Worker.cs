@@ -31,6 +31,13 @@ namespace Demo.ADTProcessing.Worker
 
             var bus = CreateBus(container);
 
+            container.Configure(cfg =>
+            {
+                cfg.For<IBusControl>()
+                    .Use(bus);
+                cfg.Forward<IBus, IBusControl>();
+            });
+
             bus.Start();
             Console.WriteLine($"{workerQueueName}(s) started.  Hit ENTER to end...");
             Console.ReadLine();
