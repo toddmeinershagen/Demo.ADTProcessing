@@ -39,8 +39,10 @@ namespace Demo.ADTProcessing.Worker
 
             ProcessMessages(context);
 
-            //TODO:  May need to Send this directly to an address that the router provides.
-            return context.Publish<IAccountSequenceCompletedEvent>(new {context.Message.QueueAddress});
+            //TODO:  May need to Send this directly to an address that the router provides in order to support multiple routers.
+            //return context.Publish<IAccountSequenceCompletedEvent>(new {context.Message.QueueAddress});
+            var responseEndpoint = context.GetSendEndpoint(context.SourceAddress).Result;
+            return responseEndpoint.Send<IAccountSequenceCompletedEvent>(new { context.Message.QueueAddress });
         }
 
         private void ProcessMessages(ConsumeContext<IAccountSequenceCommand> context)
