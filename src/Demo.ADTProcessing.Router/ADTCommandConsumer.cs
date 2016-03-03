@@ -84,7 +84,7 @@ namespace Demo.ADTProcessing.Router
 
             return context
                 .Publish<IMetricsEvent>(
-                    new
+                    new MetricsEvent()
                     {
                         EventType = routerQueueName,
                         DelayInMilliseconds = delay,

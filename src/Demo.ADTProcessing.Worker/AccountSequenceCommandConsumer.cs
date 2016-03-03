@@ -112,7 +112,7 @@ namespace Demo.ADTProcessing.Worker
             var workerQueueName = AppSettings["workerQueueName"];
             context
                 .Publish<IMetricsEvent>(
-                    new
+                    new MetricsEvent
                     {
                         EventType = workerQueueName,
                         DelayInMilliseconds = delay,

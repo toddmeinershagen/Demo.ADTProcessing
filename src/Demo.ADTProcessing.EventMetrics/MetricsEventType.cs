@@ -12,10 +12,6 @@ namespace Demo.ADTProcessing.EventMetrics
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public MetricsEventType()
-        {
-        }
-
         public MetricsEventType(IMetricsEvent metricsEvent)
         {
             Name = metricsEvent.EventType;
