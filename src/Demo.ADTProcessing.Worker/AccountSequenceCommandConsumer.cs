@@ -39,6 +39,7 @@ namespace Demo.ADTProcessing.Worker
 
             ProcessMessages(context);
 
+            //TODO:  May need to Send this directly to an address that the router provides.
             return context.Publish<IAccountSequenceCompletedEvent>(new {context.Message.QueueAddress});
         }
 

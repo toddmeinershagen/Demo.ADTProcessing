@@ -33,6 +33,7 @@ namespace Demo.ADTProcessing.Router
                 cfg.ForConcreteType<AccountSequenceCompletedEventConsumer>();
             });
 
+            //TODO:  May need to check to see if a router is already up on another box...and if so, to shut down.
             var bus = CreateBus(container);
 
             container.Configure(cfg =>
@@ -65,6 +66,7 @@ namespace Demo.ADTProcessing.Router
                     h.Heartbeat(10);
                 });
 
+                //TODO:  May need to configure additional endpoints to handle specific facilities because the router will get behind.
                 var routerQueueName = AppSettings["routerQueueName"];
                 sbc.ReceiveEndpoint(host, routerQueueName, ep =>
                 {
