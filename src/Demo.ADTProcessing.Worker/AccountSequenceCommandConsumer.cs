@@ -14,11 +14,6 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Threading;
 
-using MassTransit.Internals.Reflection;
-using MassTransit.Serialization;
-using MassTransit.Serialization.JsonConverters;
-
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using NLog;
@@ -68,6 +63,7 @@ namespace Demo.ADTProcessing.Worker
                     var pickupTimestamp = DateTime.Now;
                     var successful = true;
                     var delay = 0;
+                    var execution = 0;
                     IADTCommand adtCommand = null;
                     counter++;
 
@@ -83,14 +79,14 @@ namespace Demo.ADTProcessing.Worker
 
                         DoWork(context, counter);
                         channel.BasicAck(args.DeliveryTag, false);
+
+                        stopwatch.Stop();
+                        execution = stopwatch.Elapsed.TotalMilliseconds.Rounded();
                     }
                     catch (Exception)
                     {
                         successful = false;
                     }
-
-                    stopwatch.Stop();
-                    var execution = stopwatch.Elapsed.TotalMilliseconds.Rounded();
 
                     SendMetricsEvent(context, delay, execution, successful);
 
