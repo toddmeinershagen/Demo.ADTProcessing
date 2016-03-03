@@ -23,7 +23,7 @@ while ($true)
         if ($avgDelay)
         {    
             #$worker 
-            "router::$avgrouterExecution ms (dly=$avgRouterDelay ms, rt=$routerMessageRate/sec, ct={0:n0}) worker::$avgExecution ms (dly=$avgDelay ms, rt=$workerMessageRate/sec, ct={1:n0})" -f $routerCount, $workerCount       
+            "router::$avgrouterExecution ms (dly=$avgRouterDelay ms, rt=$routerMessageRate/sec, ct={0:n0})   worker::$avgExecution ms (dly=$avgDelay ms, rt=$workerMessageRate/sec, ct={1:n0})" -f $routerCount, $workerCount       
         }
         else
         {
