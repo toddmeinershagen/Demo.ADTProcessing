@@ -31,17 +31,11 @@ namespace Demo.ADTProcessing.Worker
         private static readonly NameValueCollection AppSettings = ConfigurationManager.AppSettings;
         private readonly IConnection _connection;
         private readonly IConsole _console;
-        private readonly JsonSerializerSettings _settings;
 
         public AccountSequenceCommandConsumer(IConnection connection, IConsole console)
         {
             _connection = connection;
             _console = console;
-            _settings = new JsonSerializerSettings();
-            _settings.Converters.Add(new InterfaceProxyConverter(new DynamicImplementationBuilder()));
-            _settings.Converters.Add(new ListJsonConverter());
-            _settings.Converters.Add(new MessageDataJsonConverter());
-            _settings.ContractResolver = new JsonContractResolver();
         }
 
         public Task Consume(ConsumeContext<IAccountSequenceCommand> context)
@@ -83,9 +77,8 @@ namespace Demo.ADTProcessing.Worker
                     try
                     {
                         var envelopeJson = Encoding.UTF8.GetString(args.Body);
-                        var envelope = JsonConvert.DeserializeObject<MessageEnvelope>(envelopeJson, _settings);
-                        var message = envelope.Message as JObject;
-                        adtCommand = message?.ToObject<ADTCommand>();
+                        var envelope = JObject.Parse(envelopeJson);
+                        adtCommand = envelope.SelectToken("message")?.ToObject<ADTCommand>();
                         delay = (pickupTimestamp - adtCommand.Timestamp).TotalMilliseconds.Rounded();
 
                         DoWork(context, counter);
