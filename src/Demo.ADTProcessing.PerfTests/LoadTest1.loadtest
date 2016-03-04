@@ -567,6 +567,21 @@
             <CounterSetReference CounterSetName="Application" />
           </CounterSetReferences>
         </CounterSetMapping>
+        <CounterSetMapping ComputerName="RCM41VQPERAPP45">
+          <CounterSetReferences>
+            <CounterSetReference CounterSetName="Application" />
+          </CounterSetReferences>
+        </CounterSetMapping>
+        <CounterSetMapping ComputerName="RCM41VQPERAPP46">
+          <CounterSetReferences>
+            <CounterSetReference CounterSetName="Application" />
+          </CounterSetReferences>
+        </CounterSetMapping>
+        <CounterSetMapping ComputerName="RCM41VQPERAPP58">
+          <CounterSetReferences>
+            <CounterSetReference CounterSetName="Application" />
+          </CounterSetReferences>
+        </CounterSetMapping>
         <CounterSetMapping ComputerName="[CONTROLLER MACHINE]">
           <CounterSetReferences>
             <CounterSetReference CounterSetName="LoadTest" />
