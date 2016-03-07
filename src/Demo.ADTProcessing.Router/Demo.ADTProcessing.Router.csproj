@@ -78,6 +78,7 @@
   <ItemGroup>
     <Compile Include="AccountSequenceCompletedEventConsumer.cs" />
     <Compile Include="ADTCommandConsumer.cs" />
+    <Compile Include="RoutedADTCommandConsumer.cs" />
     <Compile Include="RabbitMQ\RabbitMqEndpointAddress.cs" />
     <Compile Include="RabbitMQ\RabbitMqEndpointManagement.cs" />
     <Compile Include="RabbitMQ\ConnectionFactoryExtensions.cs" />
@@ -89,7 +90,9 @@
     <Compile Include="Router.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Specialized;
 using System.Configuration;
+using System.Linq;
 
 using Demo.ADTProcessing.Core;
 
@@ -29,7 +30,7 @@ namespace Demo.ADTProcessing.Router
             {
                 cfg.For<IConnection>().Use(connection);
                 cfg.For<IConsole>().Use<NullConsole>();
-                cfg.ForConcreteType<ADTCommandConsumer>();
+                cfg.ForConcreteType<RoutedADTCommandConsumer>();
                 cfg.ForConcreteType<AccountSequenceCompletedEventConsumer>();
             });
 
@@ -76,15 +77,30 @@ namespace Demo.ADTProcessing.Router
                         var numberOfAdtCommandWorkers = AppSettings["numberOfADTCommandWorkers"].As<int>();
                         cfg.UseConcurrencyLimit(numberOfAdtCommandWorkers);
                     });
-
-                    //ep.Exclusive = true;
-                    ep.Consumer<AccountSequenceCompletedEventConsumer>(container, cfg =>
-                    {
-                        var numberOfAccountSequenceCompletedWorkers =
-                            AppSettings["numberOfAccountSequenceCompletedWorkers"].As<int>();
-                        cfg.UseConcurrencyLimit(numberOfAccountSequenceCompletedWorkers);
-                    });
+                    ep.PrefetchCount = AppSettings["mainRouterPrefetchCount"].As<ushort>();
                 });
+
+                var numberOfRouteQueues = AppSettings["numberOfRouterQueues"].As<int>();
+                foreach (var number in Enumerable.Range(1, numberOfRouteQueues))
+                {
+                    sbc.ReceiveEndpoint(host, $"{routerQueueName}-{number}", ep =>
+                    {
+                        //ep.Exclusive = true;
+                        ep.Consumer<RoutedADTCommandConsumer>(container, cfg =>
+                        {
+                            var numberOfAdtCommandWorkers = AppSettings["numberOfADTCommandWorkers"].As<int>();
+                            cfg.UseConcurrencyLimit(numberOfAdtCommandWorkers);
+                        });
+
+                        //ep.Exclusive = true;
+                        ep.Consumer<AccountSequenceCompletedEventConsumer>(container, cfg =>
+                        {
+                            var numberOfAccountSequenceCompletedWorkers =
+                                AppSettings["numberOfAccountSequenceCompletedWorkers"].As<int>();
+                            cfg.UseConcurrencyLimit(numberOfAccountSequenceCompletedWorkers);
+                        });
+                    });
+                }
 
                 //NOTE:  removed the second endpoint to make sure that removals don't leave queues stranded.  (was also causing skipped messages in the ADT command processor.)
                 //sbc.ReceiveEndpoint(host, "Demo.ADTProcessing.Router.AccountSequenceCompleted", ep =>
