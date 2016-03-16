@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.Configuration;
 
 using Demo.ADTProcessing.Core;
+using Demo.ADTProcessing.Worker.Notifiers;
 
 using MassTransit;
 
@@ -29,6 +30,8 @@ namespace Demo.ADTProcessing.Worker
             {
                 cfg.For<IConnection>().Use(connection);
                 cfg.For<IConsole>().Use<NullConsole>();
+                cfg.For<IAccountSequenceCompleteNotifier>().Use<EventBasedAccountSequenceCompleteNotifier>();
+                //cfg.For<IAccountSequenceCompleteNotifier>().Use<CommandBasedAccountSequenceCompleteNotifier>();
                 //cfg.For<IConsole>().Use<OutConsole>();
                 cfg.ForConcreteType<AccountSequenceCommandConsumer>();
             });

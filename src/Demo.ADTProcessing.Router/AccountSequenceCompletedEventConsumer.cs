@@ -62,7 +62,7 @@ namespace Demo.ADTProcessing.Router
 
                         try
                         {
-                            _accountSequenceNotifier.NotifyWorkers(context, context.Message.QueueAddress);
+                            _accountSequenceNotifier.NotifyWorkers(context, context.Message.QueueAddress).Wait();
                         }
                         catch (Exception ex)
                         {

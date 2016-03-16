@@ -55,6 +55,7 @@ namespace Demo.ADTProcessing.PerfTests
             }
         }
 
+        //NOTE:  Would like to make this configurable, but Benchmark framework does not bring app.config into new CLR when running.
         public const string Host = "rcm41vqperapp01";
         public const string User = "perfuser";
         public const string Password = "perfuser1";

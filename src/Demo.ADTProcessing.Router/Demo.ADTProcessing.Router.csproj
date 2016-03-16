@@ -77,8 +77,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccountSequenceCompletedEventConsumer.cs" />
-    <Compile Include="AccountSequenceNotifier.cs" />
+    <Compile Include="Notifiers\CommandBasedAccountSequenceNotifier.cs" />
+    <Compile Include="Notifiers\EventBasedAccountSequenceNotifier.cs" />
     <Compile Include="ADTCommandConsumer.cs" />
+    <Compile Include="IAccountSequenceNotifier.cs" />
     <Compile Include="RabbitMQ\ITransportManager.cs" />
     <Compile Include="RoutedADTCommandConsumer.cs" />
     <Compile Include="RabbitMQ\RabbitMqEndpointAddress.cs" />

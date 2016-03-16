@@ -78,7 +78,7 @@ namespace Demo.ADTProcessing.Router
                     //var workerQueueName = _appSettings["workerQueueName"];
                     //var workerQueueUri = new Uri($"{busHostUri}/{workerQueueName}");
 
-                    _accountSequenceNotifier.NotifyWorkers(context, endpointAddressUrl);
+                    _accountSequenceNotifier.NotifyWorkers(context, endpointAddressUrl).Wait();
 
                     while (Program.Queues.TryAdd(endpointAddressUrl, endpointAddressUrl) == false)
                     {

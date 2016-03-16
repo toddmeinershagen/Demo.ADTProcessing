@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Linq;
 
 using Demo.ADTProcessing.Core;
+using Demo.ADTProcessing.Router.Notifiers;
 
 using MassTransit;
 
@@ -30,7 +31,8 @@ namespace Demo.ADTProcessing.Router
             {
                 cfg.For<IConnection>().Use(connection);
                 cfg.For<IConsole>().Use<NullConsole>();
-                cfg.For<IAccountSequenceNotifier>().Use<AccountSequenceNotifier>();
+                cfg.For<IAccountSequenceNotifier>().Use<EventBasedAccountSequenceNotifier>();
+                //cfg.For<IAccountSequenceNotifier>().Use<CommandBasedAccountSequenceNotifier>();
                 //cfg.For<IConsole>().Use<OutConsole>();
                 cfg.ForConcreteType<RoutedADTCommandConsumer>();
                 cfg.ForConcreteType<AccountSequenceCompletedEventConsumer>();

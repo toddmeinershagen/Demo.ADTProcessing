@@ -26,11 +26,13 @@ namespace Demo.ADTProcessing.Worker
         private static readonly NameValueCollection AppSettings = ConfigurationManager.AppSettings;
         private readonly IConnection _connection;
         private readonly IConsole _console;
+        private readonly IAccountSequenceCompleteNotifier _notifier;
 
-        public AccountSequenceCommandConsumer(IConnection connection, IConsole console)
+        public AccountSequenceCommandConsumer(IConnection connection, IConsole console, IAccountSequenceCompleteNotifier notifier)
         {
             _connection = connection;
             _console = console;
+            _notifier = notifier;
         }
 
         public Task Consume(ConsumeContext<IAccountSequenceCommand> context)
@@ -38,8 +40,9 @@ namespace Demo.ADTProcessing.Worker
             _console.WriteLine($"{GetQueueName(context)}");
 
             ProcessMessages(context);
+
+            return _notifier.NotifyRouter(context);
             
-            return context.Send<IAccountSequenceCompletedEvent>(context.SourceAddress, new { context.Message.QueueAddress });
             //NOTE:  The send does not perform as well as publish because it requires some set up that in this case may be hard to cache.
             //NOTE:  Do not want to send/respond between routers and workers for two reasons:
             //       * Responses go back to a temporary bus queue so that the main bus can forward it to the individual router.
@@ -53,55 +56,56 @@ namespace Demo.ADTProcessing.Worker
             try
             {
                 using (var channel = _connection.CreateModel())
-            {
-                //channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
-                var address = new Uri(context.Message.QueueAddress);
-                var queueName = address.Segments.Last();
-                var receiveTimeoutInMiliseconds = AppSettings["receiveTimeoutInMilliseconds"].As<int>();
-                var consumer = new QueueingBasicConsumer(channel);
-                channel.BasicConsume(queueName, false, consumer);
-                var counter = 0;
-                BasicDeliverEventArgs args;
-                var maxMessagesToProcess = AppSettings["maxMessagesToProcess"].As<int>();
-
-                var stopwatch = new Stopwatch();
-
-                while (counter < maxMessagesToProcess && consumer.Queue.Dequeue(receiveTimeoutInMiliseconds, out args))
                 {
-                    var pickupTimestamp = DateTime.Now;
-                    var successful = true;
-                    var delay = 0;
-                    var execution = 0;
-                    IADTCommand adtCommand = null;
-                    counter++;
+                    //channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
+                    var address = new Uri(context.Message.QueueAddress);
+                    var queueName = address.Segments.Last();
+                    var receiveTimeoutInMiliseconds = AppSettings["receiveTimeoutInMilliseconds"].As<int>();
+                    var consumer = new QueueingBasicConsumer(channel);
+                    channel.BasicConsume(queueName, false, consumer);
+                    var counter = 0;
+                    BasicDeliverEventArgs args;
+                    var maxMessagesToProcess = AppSettings["maxMessagesToProcess"].As<int>();
 
-                    stopwatch.Reset();
-                    stopwatch.Start();
+                    var stopwatch = new Stopwatch();
 
-                    try
+                    while (counter < maxMessagesToProcess &&
+                           consumer.Queue.Dequeue(receiveTimeoutInMiliseconds, out args))
                     {
-                        var envelopeJson = Encoding.UTF8.GetString(args.Body);
-                        var envelope = JObject.Parse(envelopeJson);
-                        adtCommand = envelope.SelectToken("message")?.ToObject<ADTCommand>();
-                        delay = (pickupTimestamp - adtCommand.Timestamp).TotalMilliseconds.Rounded();
+                        var pickupTimestamp = DateTime.Now;
+                        var successful = true;
+                        var delay = 0;
+                        var execution = 0;
+                        IADTCommand adtCommand = null;
+                        counter++;
 
-                        DoWork(context, counter);
-                        channel.BasicAck(args.DeliveryTag, false);
+                        stopwatch.Reset();
+                        stopwatch.Start();
 
-                        stopwatch.Stop();
-                        execution = stopwatch.Elapsed.TotalMilliseconds.Rounded();
+                        try
+                        {
+                            var envelopeJson = Encoding.UTF8.GetString(args.Body);
+                            var envelope = JObject.Parse(envelopeJson);
+                            adtCommand = envelope.SelectToken("message")?.ToObject<ADTCommand>();
+                            delay = (pickupTimestamp - adtCommand.Timestamp).TotalMilliseconds.Rounded();
+
+                            DoWork(context, counter);
+                            channel.BasicAck(args.DeliveryTag, false);
+
+                            stopwatch.Stop();
+                            execution = stopwatch.Elapsed.TotalMilliseconds.Rounded();
+                        }
+                        catch (Exception)
+                        {
+                            successful = false;
+                        }
+
+                        SendMetricsEvent(context, delay, execution, successful);
+
+                        if (Logger.IsInfoEnabled && adtCommand != null)
+                            Logger.Info($"{adtCommand.FacilityId},{adtCommand.AccountNumber},{adtCommand.Sequence}");
                     }
-                    catch (Exception)
-                    {
-                        successful = false;
-                    }
-
-                    SendMetricsEvent(context, delay, execution, successful);
-
-                    if (Logger.IsInfoEnabled && adtCommand != null)
-                        Logger.Info($"{adtCommand.FacilityId},{adtCommand.AccountNumber},{adtCommand.Sequence}");
                 }
-            }
             }
             catch (Exception ex)
             {
