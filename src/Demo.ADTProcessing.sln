@@ -29,6 +29,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{D197526F
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo.ADTProcessing.EventMetrics.UnitTests", "Demo.ADTProcessing.EventMetrics.UnitTests\Demo.ADTProcessing.EventMetrics.UnitTests.csproj", "{15BDEA80-325F-4E90-A10A-CB9E82BA0C1E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo.ADTProcessing.Benchmarks", "Demo.ADTProcessing.Benchmarks\Demo.ADTProcessing.Benchmarks.csproj", "{3EE039E9-ACED-4D65-B765-ABBA501CB972}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{15BDEA80-325F-4E90-A10A-CB9E82BA0C1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15BDEA80-325F-4E90-A10A-CB9E82BA0C1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15BDEA80-325F-4E90-A10A-CB9E82BA0C1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EE039E9-ACED-4D65-B765-ABBA501CB972}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EE039E9-ACED-4D65-B765-ABBA501CB972}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EE039E9-ACED-4D65-B765-ABBA501CB972}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EE039E9-ACED-4D65-B765-ABBA501CB972}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -70,5 +76,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{7DC41CA2-906D-4463-BB21-E74CC503A5DF} = {D197526F-3F88-4F6F-B46D-F5BE473F6F32}
 		{15BDEA80-325F-4E90-A10A-CB9E82BA0C1E} = {D197526F-3F88-4F6F-B46D-F5BE473F6F32}
+		{3EE039E9-ACED-4D65-B765-ABBA501CB972} = {D197526F-3F88-4F6F-B46D-F5BE473F6F32}
 	EndGlobalSection
 EndGlobal

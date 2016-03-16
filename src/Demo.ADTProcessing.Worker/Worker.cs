@@ -29,6 +29,7 @@ namespace Demo.ADTProcessing.Worker
             {
                 cfg.For<IConnection>().Use(connection);
                 cfg.For<IConsole>().Use<NullConsole>();
+                //cfg.For<IConsole>().Use<OutConsole>();
                 cfg.ForConcreteType<AccountSequenceCommandConsumer>();
             });
 

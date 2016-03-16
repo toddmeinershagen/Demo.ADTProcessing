@@ -38,16 +38,21 @@ namespace Demo.ADTProcessing.Worker
             _console.WriteLine($"{GetQueueName(context)}");
 
             ProcessMessages(context);
-
-            //TODO:  May need to Send this directly to an address that the router provides in order to support multiple routers.
-            //return context.Publish<IAccountSequenceCompletedEvent>(new {context.Message.QueueAddress});
-            var responseEndpoint = context.GetSendEndpoint(context.SourceAddress).Result;
-            return responseEndpoint.Send<IAccountSequenceCompletedEvent>(new { context.Message.QueueAddress });
+            
+            return context.Send<IAccountSequenceCompletedEvent>(context.SourceAddress, new { context.Message.QueueAddress });
+            //NOTE:  The send does not perform as well as publish because it requires some set up that in this case may be hard to cache.
+            //NOTE:  Do not want to send/respond between routers and workers for two reasons:
+            //       * Responses go back to a temporary bus queue so that the main bus can forward it to the individual router.
+            //       * Responses go back to a temporary bus queue that might go down in the middle of processing and those messages would be lost.
+            //return context.RespondAsync<IAccountSequenceCompletedEvent>(new { context.Message.QueueAddress });
+            //return context.Send<IAccountSequenceCompletedEvent>(new Uri(context.Message.RouterAddress), new { context.Message.QueueAddress });
         }
 
         private void ProcessMessages(ConsumeContext<IAccountSequenceCommand> context)
         {
-            using (var channel = _connection.CreateModel())
+            try
+            {
+                using (var channel = _connection.CreateModel())
             {
                 //channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
                 var address = new Uri(context.Message.QueueAddress);
@@ -97,6 +102,12 @@ namespace Demo.ADTProcessing.Worker
                         Logger.Info($"{adtCommand.FacilityId},{adtCommand.AccountNumber},{adtCommand.Sequence}");
                 }
             }
+            }
+            catch (Exception ex)
+            {
+                _console.WriteLine("RoutedADTCommandConsumer::" + ex.Message);
+                throw;
+            }
         }
 
         private static void SendMetricsEvent(ConsumeContext<IAccountSequenceCommand> context, int delay, int execution, bool successful)
@@ -119,7 +130,12 @@ namespace Demo.ADTProcessing.Worker
             _console.WriteLine($"{counter:0#}::{GetQueueName(context)}");
 
             var maxDelayInProcessing = AppSettings["maxProcessingDelayInSeconds"].As<int>();
-            Thread.Sleep(TimeSpan.FromSeconds(GetRandomNumber(maxDelayInProcessing)));
+            var useRandomProcessingDelay = AppSettings["useRandomProcessingDelay"].As<bool>();
+            var secondsToSleep = useRandomProcessingDelay 
+                ? GetRandomNumber(maxDelayInProcessing) 
+                : maxDelayInProcessing;
+
+            Thread.Sleep(TimeSpan.FromSeconds(secondsToSleep));
         }
 
         private string GetQueueName(ConsumeContext<IAccountSequenceCommand> context)

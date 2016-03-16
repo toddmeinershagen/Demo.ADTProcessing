@@ -30,18 +30,27 @@ namespace Demo.ADTProcessing.Router
             {
                 cfg.For<IConnection>().Use(connection);
                 cfg.For<IConsole>().Use<NullConsole>();
+                cfg.For<IAccountSequenceNotifier>().Use<AccountSequenceNotifier>();
+                //cfg.For<IConsole>().Use<OutConsole>();
                 cfg.ForConcreteType<RoutedADTCommandConsumer>();
                 cfg.ForConcreteType<AccountSequenceCompletedEventConsumer>();
             });
 
             //TODO:  May need to check to see if a router is already up on another box...and if so, to shut down.
             var bus = CreateBus(container);
+            
+            var busHostUri = AppSettings["busHostUri"];
+            var workerQueueName = AppSettings["workerQueueName"];
+            var workerQueueUri = new Uri($"{busHostUri}/{workerQueueName}");
+            var workerEndpoint = bus.GetSendEndpoint(workerQueueUri).Result;
 
             container.Configure(cfg =>
             {
                 cfg.For<IBusControl>()
                     .Use(bus);
                 cfg.Forward<IBus, IBusControl>();
+                cfg.For<ISendEndpoint>()
+                    .Use(workerEndpoint);
             });
 
             bus.Start();
@@ -66,6 +75,17 @@ namespace Demo.ADTProcessing.Router
                     h.Password(password);
                     h.Heartbeat(10);
                 });
+
+                //NOTE:     Only doing these configurations in case the router goes down and responses still come in.  We need to set the queue up to be durable.  MT sets
+                //          the expiry in 1 second of no use, and there is no way to remove the expiry.  I have set it to 30 minutes for now.
+                //NOTE:     Also do not recommend setting the name of the default bus endpoint, but in this case we need to so that it is constant for responses to come back to.
+                sbc.OverrideDefaultBusEndpointQueueName("Demo.ADTProcessing.Router.TemporaryHost");
+                sbc.Durable = true;
+                sbc.AutoDelete = false;
+                var expiryInMs = Convert.ToInt64(TimeSpan.FromMinutes(30).TotalMilliseconds);
+                sbc.SetExchangeArgument("x-expires", expiryInMs);
+                sbc.SetQueueArgument("x-expires", expiryInMs);
+                sbc.PrefetchCount = AppSettings["mainRouterPrefetchCount"].As<ushort>();
 
                 //TODO:  May need to configure additional endpoints to handle specific facilities because the router will get behind.
                 var routerQueueName = AppSettings["routerQueueName"];

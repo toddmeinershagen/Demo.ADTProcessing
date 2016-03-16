@@ -9,6 +9,7 @@ using System.Threading;
 using Demo.ADTProcessing.Core;
 
 using MassTransit;
+using MassTransit.Transports;
 
 namespace Demo.ADTProcessing.DataIngress
 {

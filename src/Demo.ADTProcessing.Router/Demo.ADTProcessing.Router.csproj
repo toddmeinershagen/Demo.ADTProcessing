@@ -34,11 +34,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MassTransit, Version=3.2.0.0, Culture=neutral, PublicKeyToken=b8e0e9f2f1e657fa, processorArchitecture=MSIL">
-      <HintPath>..\packages\MassTransit.3.2.0\lib\net45\MassTransit.dll</HintPath>
+      <HintPath>..\packages\MassTransit.3.2.2\lib\net45\MassTransit.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MassTransit.RabbitMqTransport, Version=3.2.0.0, Culture=neutral, PublicKeyToken=b8e0e9f2f1e657fa, processorArchitecture=MSIL">
-      <HintPath>..\packages\MassTransit.RabbitMQ.3.2.0\lib\net45\MassTransit.RabbitMqTransport.dll</HintPath>
+      <HintPath>..\packages\MassTransit.RabbitMQ.3.2.2\lib\net45\MassTransit.RabbitMqTransport.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MassTransit.StructureMapIntegration, Version=3.2.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -53,8 +53,8 @@
       <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="RabbitMQ.Client, Version=3.6.0.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
-      <HintPath>..\packages\RabbitMQ.Client.3.6.0\lib\net45\RabbitMQ.Client.dll</HintPath>
+    <Reference Include="RabbitMQ.Client, Version=3.6.1.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
+      <HintPath>..\packages\RabbitMQ.Client.3.6.1\lib\net45\RabbitMQ.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="StructureMap, Version=4.0.1.318, Culture=neutral, processorArchitecture=MSIL">
@@ -77,15 +77,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccountSequenceCompletedEventConsumer.cs" />
+    <Compile Include="AccountSequenceNotifier.cs" />
     <Compile Include="ADTCommandConsumer.cs" />
+    <Compile Include="RabbitMQ\ITransportManager.cs" />
     <Compile Include="RoutedADTCommandConsumer.cs" />
     <Compile Include="RabbitMQ\RabbitMqEndpointAddress.cs" />
     <Compile Include="RabbitMQ\RabbitMqEndpointManagement.cs" />
-    <Compile Include="RabbitMQ\ConnectionFactoryExtensions.cs" />
-    <Compile Include="RabbitMQ\ITransportManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RabbitMQ\RabbitMqConnection.cs" />
     <Compile Include="RabbitMQ\RabbitMqTransportManager.cs" />
     <Compile Include="Router.cs" />
   </ItemGroup>
